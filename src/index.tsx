@@ -62,10 +62,7 @@ api.get("/heroes", versionMiddleware, languageMiddleware, async (c) => {
 
 api.get(
   "/heroes/:id",
-  arktypeValidator(
-    "param",
-    type({ id: type("string.integer.parse").to("number > 0") }),
-  ),
+  arktypeValidator("param", type({ id: type("string.integer.parse").to("number > 0") })),
   versionMiddleware,
   languageMiddleware,
   async (c) => {
