@@ -76,7 +76,7 @@ export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
   path: string,
 ): Promise<T> => {
   const version = c.get("version");
-  const obj = await c.env.ASSETS_BUCKET.get(`assets-api-data/versions/${version}/${path}`);
+  const obj = await c.env.ASSETS_BUCKET.get(`assets-api-data/versions/${version}/${path}.json`);
   if (!obj) throw new JsonNotFound(`requested object not found (ver ${version}/${path})`);
   const json = await obj.json();
   if (!json) throw new JsonNotFound(`requested object corrupted (ver ${version}/${path})`);
