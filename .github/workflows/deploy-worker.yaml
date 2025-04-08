@@ -23,3 +23,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: 4.9.0
+          postCommands: |
+            echo "*** Delete KV Entry: assets-api-data/versions/latest_version.txt ***"
+            wrangler kv key delete --binding=ASSETS_KV --preview false --remote assets-api-data/versions/latest_version.txt
+            echo "*********************************************************************"
