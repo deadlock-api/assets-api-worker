@@ -1,82 +1,59 @@
-import { type } from "arktype";
-import { arktypeValidator } from "@hono/arktype-validator";
-import {
-  JsonNotFound,
-  type Bindings,
-  type JsonObject,
-  versionMiddleware,
-  languageMiddleware,
-  getVersionedLanguageJsonFile,
-} from "./utils";
 import { Hono } from "hono";
 import { trimTrailingSlash } from "hono/trailing-slash";
+import heroes from "./heroes";
+import items from "./items";
+import {
+  type Bindings,
+  type JsonObject,
+  getVersionedJsonFile,
+  getVersionedLanguageJsonFile,
+  languageMiddleware,
+  versionMiddleware,
+} from "./utils";
 
 const appBase = new Hono<{ Bindings: Bindings }>({ strict: true });
 
-const api = new Hono<{ Bindings: Bindings }>({ strict: true });
-
 appBase.use(trimTrailingSlash());
 
-appBase.get("/", versionMiddleware, async (c) => {
-  const version = c.get("version");
-  return c.render(
-    <>
-      <h1>Hello! This is the Deadlock assets API. </h1>
-      <h2>
-        You're probably looking for <a href="/v3">/v3</a>
-      </h2>
-      <p>Latest game version: {version}</p>
-    </>,
-  );
-});
-
-api.get("/", versionMiddleware, async (c) => {
-  const version = c.get("version");
-
-  return c.render(
-    <>
-      <h1>Deadlock Assets API V3</h1>
-      <p>Latest game version: {version}</p>
-      <p>This is a placeholder for the API docs.</p>
-
-      <div>
-        <h2>Routes</h2>
-        <ul>
-          <li>
-            <a href="/v3/heroes">/v3/heroes</a> - Get all heroes
-          </li>
-          <li>
-            <a href="/v3/heroes/1">/v3/heroes/:id</a> - Get a hero by id
-          </li>
-        </ul>
-      </div>
-    </>,
-  );
-});
-
-api.get("/heroes", versionMiddleware, languageMiddleware, async (c) => {
-  const json = await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes");
-
-  return c.json(json);
-});
-
-api.get(
-  "/heroes/:id",
-  arktypeValidator("param", type({ id: type("string.integer.parse").to("number > 0") })),
-  versionMiddleware,
-  languageMiddleware,
-  async (c) => {
-    const json = await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes");
-
-    const { id } = c.req.valid("param");
-
-    const hero = json.find((hero: JsonObject) => hero?.id === id);
-    if (!hero) throw new JsonNotFound(`hero not found (id: ${id})`);
-
-    return c.json(hero);
-  },
+appBase.get("/", versionMiddleware, async (c) =>
+  c.render(<h1>TODO: Host OpenAPI Documentation</h1>),
 );
 
-appBase.route("/v3", api);
+const api_raw = new Hono<{ Bindings: Bindings }>({ strict: true });
+api_raw.get("/heroes", versionMiddleware, async (c) =>
+  c.json(await getVersionedJsonFile<JsonObject[]>(c, "raw_heroes")),
+);
+api_raw.get("/items", versionMiddleware, async (c) =>
+  c.json(await getVersionedJsonFile<JsonObject[]>(c, "raw_items")),
+);
+appBase.route("/raw", api_raw);
+
+const api_v1 = new Hono<{ Bindings: Bindings }>({ strict: true });
+api_v1.get("/colors", versionMiddleware, async (c) =>
+  c.json(await getVersionedJsonFile<JsonObject[]>(c, "colors_data")),
+);
+api_v1.get("/map", versionMiddleware, async (c) =>
+  c.json(await getVersionedJsonFile<JsonObject[]>(c, "map_data")),
+);
+api_v1.get("/steam-info", versionMiddleware, async (c) =>
+  c.json(await getVersionedJsonFile<JsonObject[]>(c, "steam_info")),
+);
+
+api_v1.get("/icons", versionMiddleware, async (c) =>
+  c.json(await getVersionedJsonFile<JsonObject[]>(c, "icons_data")),
+);
+api_v1.get("/sounds", versionMiddleware, async (c) =>
+  c.json(await getVersionedJsonFile<JsonObject[]>(c, "sounds_data")),
+);
+appBase.route("/v1", api_v1);
+
+const api_v2 = new Hono<{ Bindings: Bindings }>({ strict: true });
+api_v2.route("/heroes", heroes);
+api_v2.route("/items", items);
+
+api_v2.get("/ranks", versionMiddleware, languageMiddleware, async (c) =>
+  c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "ranks")),
+);
+appBase.route("/v2", api_v2);
 
 export default appBase;
