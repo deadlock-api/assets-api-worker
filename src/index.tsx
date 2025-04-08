@@ -4,8 +4,11 @@ import heroes from "./heroes";
 import items from "./items";
 import {
   type Bindings,
+  JsonList,
   type JsonObject,
-  getCachedJsonFile,
+  JsonValue,
+  cacheMiddleware,
+  getFile,
   getVersionedJsonFile,
   getVersionedLanguageJsonFile,
   languageMiddleware,
@@ -43,19 +46,19 @@ appBase.route("/raw", api_raw);
 
 const api_v1 = new Hono<{ Bindings: Bindings }>({ strict: true });
 api_v1.get("/colors", versionMiddleware, async (c) =>
-  c.json(await getVersionedJsonFile<JsonObject[]>(c, "colors_data")),
+  c.json(await getVersionedJsonFile<JsonObject>(c, "colors_data")),
 );
 api_v1.get("/map", versionMiddleware, async (c) =>
-  c.json(await getVersionedJsonFile<JsonObject[]>(c, "map_data")),
+  c.json(await getVersionedJsonFile<JsonObject>(c, "map_data")),
 );
 api_v1.get("/steam-info", versionMiddleware, async (c) =>
-  c.json(await getVersionedJsonFile<JsonObject[]>(c, "steam_info")),
+  c.json(await getVersionedJsonFile<JsonObject>(c, "steam_info")),
 );
 api_v1.get("/icons", versionMiddleware, async (c) =>
-  c.json(await getVersionedJsonFile<JsonObject[]>(c, "icons_data")),
+  c.json(await getVersionedJsonFile<JsonObject>(c, "icons_data")),
 );
 api_v1.get("/sounds", versionMiddleware, async (c) =>
-  c.json(await getVersionedJsonFile<JsonObject[]>(c, "sounds_data")),
+  c.json(await getVersionedJsonFile<JsonObject>(c, "sounds_data")),
 );
 appBase.route("/v1", api_v1);
 
@@ -65,8 +68,8 @@ api_v2.route("/items", items);
 api_v2.get("/ranks", versionMiddleware, languageMiddleware, async (c) =>
   c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "ranks")),
 );
-api_v2.get("/client-versions", versionMiddleware, languageMiddleware, async (c) =>
-  c.json(await getCachedJsonFile<JsonObject[]>(c, "assets-api-data/versions/client_versions.json")),
+api_v2.get("/client-versions", cacheMiddleware, async (c) =>
+  c.json(await getFile(c, "assets-api-data/versions/client_versions.json")),
 );
 appBase.route("/v2", api_v2);
 

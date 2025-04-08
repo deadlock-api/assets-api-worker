@@ -12,7 +12,7 @@ import {
 
 const items = new Hono<{ Bindings: Bindings }>({ strict: true });
 
-items.get("", versionMiddleware, languageMiddleware, async (c) => {
+items.get("/", versionMiddleware, languageMiddleware, async (c) => {
   const data = await getVersionedLanguageJsonFile<string>(c, "items", true);
   return c.body(data, 200, {
     "Content-Type": "application/json",

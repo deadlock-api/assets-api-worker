@@ -5,6 +5,7 @@ import {
   type Bindings,
   type JsonObject,
   NotFound,
+  cacheMiddleware,
   getVersionedLanguageJsonFile,
   languageMiddleware,
   versionMiddleware,
@@ -12,7 +13,7 @@ import {
 
 const heroes = new Hono<{ Bindings: Bindings }>({ strict: true });
 
-heroes.get("", versionMiddleware, languageMiddleware, async (c) => {
+heroes.get("/", versionMiddleware, languageMiddleware, cacheMiddleware, async (c) => {
   const only_active = c.req.query("only_active") === "true";
   if (only_active) {
     const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes")) as JsonObject[];
@@ -31,6 +32,7 @@ heroes.get(
   arktypeValidator("param", type({ id: type("string.integer.parse").to("number > 0") })),
   versionMiddleware,
   languageMiddleware,
+  cacheMiddleware,
   async (c) => {
     const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes")) as JsonObject[];
 
@@ -48,6 +50,7 @@ heroes.get(
   arktypeValidator("param", type({ name: type("string") })),
   versionMiddleware,
   languageMiddleware,
+  cacheMiddleware,
   async (c) => {
     const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes")) as JsonObject[];
 
