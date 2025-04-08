@@ -12,9 +12,12 @@ import {
 
 const heroes = new Hono<{ Bindings: Bindings }>({ strict: true });
 
-heroes.get("", versionMiddleware, languageMiddleware, async (c) =>
-  c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes")),
-);
+heroes.get("", versionMiddleware, languageMiddleware, async (c) => {
+  const data = await getVersionedLanguageJsonFile<string>(c, "heroes", true);
+  return c.body(data, 200, {
+    "Content-Type": "application/json",
+  });
+});
 
 heroes.get(
   "/:id",
@@ -22,7 +25,7 @@ heroes.get(
   versionMiddleware,
   languageMiddleware,
   async (c) => {
-    const json = await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes");
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes")) as JsonObject[];
 
     const { id } = c.req.valid("param");
 
@@ -39,7 +42,7 @@ heroes.get(
   versionMiddleware,
   languageMiddleware,
   async (c) => {
-    const json = await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes");
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes")) as JsonObject[];
 
     const { name } = c.req.valid("param");
     const nameLower = name.toLowerCase();

@@ -12,9 +12,12 @@ import {
 
 const items = new Hono<{ Bindings: Bindings }>({ strict: true });
 
-items.get("", versionMiddleware, languageMiddleware, async (c) =>
-  c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")),
-);
+items.get("", versionMiddleware, languageMiddleware, async (c) => {
+  const data = await getVersionedLanguageJsonFile<string>(c, "items", true);
+  return c.body(data, 200, {
+    "Content-Type": "application/json",
+  });
+});
 
 items.get(
   "/:id_or_classname",
@@ -22,7 +25,7 @@ items.get(
   versionMiddleware,
   languageMiddleware,
   async (c) => {
-    const json = await getVersionedLanguageJsonFile<JsonObject[]>(c, "items");
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
 
     const { id_or_classname } = c.req.valid("param");
 
@@ -44,7 +47,7 @@ items.get(
   versionMiddleware,
   languageMiddleware,
   async (c) => {
-    const json = await getVersionedLanguageJsonFile<JsonObject[]>(c, "items");
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
 
     const { hero_id } = c.req.valid("param");
 
@@ -75,7 +78,7 @@ items.get(
   versionMiddleware,
   languageMiddleware,
   async (c) => {
-    const json = await getVersionedLanguageJsonFile<JsonObject[]>(c, "items");
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
 
     const { item_slot_type } = c.req.valid("param");
 

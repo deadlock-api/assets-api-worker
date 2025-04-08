@@ -83,7 +83,8 @@ export const languageMiddleware = createMiddleware<
 export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
   c: Context<BaseEnv & { Variables: { version: string } }>,
   path: string,
-): Promise<T> => {
+  return_unparsed = false,
+): Promise<T | string> => {
   const version = c.get("version");
   const key = `assets-api-data/versions/${version}/${path}.json`;
 
@@ -91,18 +92,22 @@ export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
   const cached = await c.env.ASSETS_KV.get(key);
   if (cached) {
     console.info(`cache hit for ${key}`);
-    return JSON.parse(cached) as T;
+    return return_unparsed ? cached : (JSON.parse(cached) as T);
   }
 
   // Fetch the object from the R2 bucket
   const obj = await c.env.ASSETS_BUCKET.get(key);
   if (!obj) throw new NotFound(`requested object not found (${key})`);
+
+  if (return_unparsed) {
+    const text = await obj.text();
+    await c.env.ASSETS_KV.put(key, text, { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+    return text;
+  }
+
   const json = await obj.json();
   if (!json) throw new InternalError(`requested object corrupted (${key})`);
-
-  // Cache the object in KV
   await c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
-
   return json as T;
 };
 
@@ -112,7 +117,8 @@ export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
 export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonValue>(
   c: Context<BaseEnv & { Variables: { version: string; language: string } }>,
   path: string,
-): Promise<T> => {
+  return_unparsed = false,
+): Promise<T | string> => {
   const version = c.get("version");
   const language = c.get("language");
   const key = `assets-api-data/versions/${version}/${path}/${language}.json`;
@@ -121,17 +127,21 @@ export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonVal
   const cached = await c.env.ASSETS_KV.get(key);
   if (cached) {
     console.info(`cache hit for ${key}`);
-    return JSON.parse(cached) as T;
+    return return_unparsed ? cached : (JSON.parse(cached) as T);
   }
 
   // Fetch the object from the R2 bucket
   const obj = await c.env.ASSETS_BUCKET.get(key);
   if (!obj) throw new NotFound(`requested object not found (${key})`);
+
+  if (return_unparsed) {
+    const text = await obj.text();
+    await c.env.ASSETS_KV.put(key, text, { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+    return text;
+  }
+
   const json = await obj.json();
   if (!json) throw new InternalError(`requested object corrupted (${key})`);
-
-  // Cache the object in KV
   await c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
-
   return json as T;
 };

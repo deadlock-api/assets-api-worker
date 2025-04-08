@@ -20,12 +20,18 @@ appBase.get("/", versionMiddleware, async (c) =>
 );
 
 const api_raw = new Hono<{ Bindings: Bindings }>({ strict: true });
-api_raw.get("/heroes", versionMiddleware, async (c) =>
-  c.json(await getVersionedJsonFile<JsonObject[]>(c, "raw_heroes")),
-);
-api_raw.get("/items", versionMiddleware, async (c) =>
-  c.json(await getVersionedJsonFile<JsonObject[]>(c, "raw_items")),
-);
+api_raw.get("/heroes", versionMiddleware, async (c) => {
+  const data = await getVersionedJsonFile<string>(c, "raw_heroes", true);
+  return c.body(data, 200, {
+    "Content-Type": "application/json",
+  });
+});
+api_raw.get("/items", versionMiddleware, async (c) => {
+  const data = await getVersionedJsonFile<string>(c, "raw_items", true);
+  return c.body(data, 200, {
+    "Content-Type": "application/json",
+  });
+});
 appBase.route("/raw", api_raw);
 
 const api_v1 = new Hono<{ Bindings: Bindings }>({ strict: true });
