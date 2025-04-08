@@ -37,7 +37,7 @@ export interface JsonObject {
 
 /**
  * Middleware which fetches `assets-api-data/versions/latest_version.txt` and sets the version in the context
- * Overrideable by query param `version`
+ * Overrideable by query param `client_version`
  */
 export const versionMiddleware = createMiddleware<
   BaseEnv & {
@@ -46,7 +46,7 @@ export const versionMiddleware = createMiddleware<
     };
   }
 >(async (c, next) => {
-  const versionQ = c.req.query("version");
+  const versionQ = c.req.query("client_version");
   if (versionQ && Number.isInteger(Number.parseInt(versionQ))) {
     c.set("version", versionQ);
   } else {
