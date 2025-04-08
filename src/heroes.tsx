@@ -13,6 +13,13 @@ import {
 const heroes = new Hono<{ Bindings: Bindings }>({ strict: true });
 
 heroes.get("", versionMiddleware, languageMiddleware, async (c) => {
+  const only_active = c.req.query("only_active") === "true";
+  if (only_active) {
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "heroes")) as JsonObject[];
+    const activeHeroes = json.filter((hero: JsonObject) => !hero?.disabled);
+    return c.json(activeHeroes);
+  }
+
   const data = await getVersionedLanguageJsonFile<string>(c, "heroes", true);
   return c.body(data, 200, {
     "Content-Type": "application/json",
