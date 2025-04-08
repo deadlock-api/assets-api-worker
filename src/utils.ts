@@ -115,7 +115,7 @@ export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonVal
 /**
  * Helper function to fetch and cache a JSON file from the bucket
  */
-const getCachedJsonFile = async <T extends JsonValue = JsonValue>(
+export const getCachedJsonFile = async <T extends JsonValue = JsonValue>(
   c: Context,
   key: string,
 ): Promise<T> => {
@@ -141,7 +141,7 @@ const getCachedJsonFile = async <T extends JsonValue = JsonValue>(
 /**
  * Helper function to fetch and cache a JSON file from the bucket
  */
-const getCachedFile = async (c: Context, key: string): Promise<string> => {
+export const getCachedFile = async (c: Context, key: string): Promise<string> => {
   // Check if the object is cached in KV
   const cached = await c.env.ASSETS_KV.get(key);
   if (cached) {

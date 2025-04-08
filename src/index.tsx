@@ -5,6 +5,7 @@ import items from "./items";
 import {
   type Bindings,
   type JsonObject,
+  getCachedJsonFile,
   getVersionedJsonFile,
   getVersionedLanguageJsonFile,
   languageMiddleware,
@@ -61,9 +62,11 @@ appBase.route("/v1", api_v1);
 const api_v2 = new Hono<{ Bindings: Bindings }>({ strict: true });
 api_v2.route("/heroes", heroes);
 api_v2.route("/items", items);
-
 api_v2.get("/ranks", versionMiddleware, languageMiddleware, async (c) =>
   c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "ranks")),
+);
+api_v2.get("/client-versions", versionMiddleware, languageMiddleware, async (c) =>
+  c.json(await getCachedJsonFile<JsonObject[]>(c, "assets-api-data/versions/client_versions.json")),
 );
 appBase.route("/v2", api_v2);
 
