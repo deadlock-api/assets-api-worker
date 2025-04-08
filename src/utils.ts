@@ -35,7 +35,8 @@ export interface JsonObject {
   [k: string | number | symbol]: JsonValue;
 }
 
-const DEFAULT_TTL = 60 * 60 * 24 * 7;
+// For testing
+const DEFAULT_TTL = 60;
 
 /**
  * Middleware which fetches `assets-api-data/versions/latest_version.txt` and sets the version in the context
@@ -55,7 +56,7 @@ export const versionMiddleware = createMiddleware<
   } else {
     const key = "assets-api-data/versions/latest_version.txt";
 
-    version = (await getFile(c, key)).trim();
+    version = (await getCachedFileKV(c, key)).trim();
   }
 
   c.set("version", version);
@@ -133,7 +134,7 @@ export const cacheMiddleware = createMiddleware<
   }
   await next();
 
-  c.res.headers.set("Cache-Control", "public, max-age=60");
+  c.res.headers.set("Cache-Control", `public, max-age=${DEFAULT_TTL}`);
 
   const res = c.res.clone();
   c.executionCtx.waitUntil(caches.default.put(key, res));
@@ -167,5 +168,16 @@ export const getFile = async (c: Context, key: string): Promise<string> => {
 
   const text = await obj.text();
   if (!text) throw new InternalError(`requested object corrupted (${key})`);
+  return text;
+};
+
+export const getCachedFileKV = async (c: Context, key: string): Promise<string> => {
+  const cached = await c.env.ASSETS_KV.get(key);
+  if (cached) {
+    console.log(`cache hit for ${key}`);
+    return cached;
+  }
+  const text = await getFile(c, key);
+  await c.env.ASSETS_KV.put(key, text, { expirationTtl: DEFAULT_TTL });
   return text;
 };
