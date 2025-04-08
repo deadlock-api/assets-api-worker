@@ -89,7 +89,10 @@ export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
 
   // Check if the object is cached in KV
   const cached = await c.env.ASSETS_KV.get(key);
-  if (cached) return JSON.parse(cached) as T;
+  if (cached) {
+    console.info(`cache hit for ${key}`);
+    return JSON.parse(cached) as T;
+  }
 
   // Fetch the object from the R2 bucket
   const obj = await c.env.ASSETS_BUCKET.get(key);
@@ -116,7 +119,10 @@ export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonVal
 
   // Check if the object is cached in KV
   const cached = await c.env.ASSETS_KV.get(key);
-  if (cached) return JSON.parse(cached) as T;
+  if (cached) {
+    console.info(`cache hit for ${key}`);
+    return JSON.parse(cached) as T;
+  }
 
   // Fetch the object from the R2 bucket
   const obj = await c.env.ASSETS_BUCKET.get(key);
