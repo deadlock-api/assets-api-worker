@@ -27,7 +27,7 @@ export interface JsonObject {
 }
 
 /**
- * Middleware which fetches `assets-api-data/latest_version.txt` and sets the version in the context
+ * Middleware which fetches `assets-api-data/versions/latest_version.txt` and sets the version in the context
  * Overrideable by query param `version`
  */
 export const versionMiddleware = createMiddleware<
@@ -41,9 +41,9 @@ export const versionMiddleware = createMiddleware<
   if (versionQ && Number.isInteger(Number.parseInt(versionQ))) {
     c.set("version", versionQ);
   } else {
-    const obj = await c.env.ASSETS_BUCKET.get("assets-api-data/latest_version.txt");
+    const obj = await c.env.ASSETS_BUCKET.get("assets-api-data/versions/latest_version.txt");
     const objTxt = await obj?.text();
-    if (!objTxt) throw new JsonNotFound("assets-api-data/latest_version.txt not found");
+    if (!objTxt) throw new JsonNotFound("assets-api-data/versions/latest_version.txt not found");
     c.set("version", objTxt.trim());
   }
   await next();

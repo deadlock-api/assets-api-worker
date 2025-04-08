@@ -11,8 +11,8 @@ pnpm dev
 This will seed your local r2 bucket which is used by pnpm dev
 
 ```
-wrangler r2 object put preview-assets/assets-api-data/latest_version.txt --local --file test-r2-data/assets-api-data/versions/latest_version.txt
-wrangler r2 object put preview-assets/assets-api-data/versions/1234/heroes/english.json --local --file test-r2-data/assets-api-data/versions/1234/heroes/english.json
+find test-r2-data -type f -exec sh -c \
+    'wrangler r2 object put "preview-assets/${1#test-r2-data/}" --local --file "$1"' sh {} \;
 ```
 
 ## Build
