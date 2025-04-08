@@ -24,19 +24,19 @@ appBase.get("/", versionMiddleware, async (c) =>
 );
 
 const api_raw = new Hono<{ Bindings: Bindings }>({ strict: true });
-api_raw.get("/heroes", versionMiddleware, async (c) => {
+api_raw.get("/heroes", versionMiddleware, cacheMiddleware, async (c) => {
   const data = await getVersionedJsonFile<string>(c, "raw_heroes", true);
   return c.body(data, 200, {
     "Content-Type": "application/json",
   });
 });
-api_raw.get("/items", versionMiddleware, async (c) => {
+api_raw.get("/items", versionMiddleware, cacheMiddleware, async (c) => {
   const data = await getVersionedJsonFile<string>(c, "raw_items", true);
   return c.body(data, 200, {
     "Content-Type": "application/json",
   });
 });
-api_raw.get("/generic_data", versionMiddleware, async (c) => {
+api_raw.get("/generic_data", versionMiddleware, cacheMiddleware, async (c) => {
   const data = await getVersionedJsonFile<string>(c, "generic_data", true);
   return c.body(data, 200, {
     "Content-Type": "application/json",
@@ -45,19 +45,19 @@ api_raw.get("/generic_data", versionMiddleware, async (c) => {
 appBase.route("/raw", api_raw);
 
 const api_v1 = new Hono<{ Bindings: Bindings }>({ strict: true });
-api_v1.get("/colors", versionMiddleware, async (c) =>
+api_v1.get("/colors", versionMiddleware, cacheMiddleware, async (c) =>
   c.json(await getVersionedJsonFile<JsonObject>(c, "colors_data")),
 );
-api_v1.get("/map", versionMiddleware, async (c) =>
+api_v1.get("/map", versionMiddleware, cacheMiddleware, async (c) =>
   c.json(await getVersionedJsonFile<JsonObject>(c, "map_data")),
 );
-api_v1.get("/steam-info", versionMiddleware, async (c) =>
+api_v1.get("/steam-info", versionMiddleware, cacheMiddleware, async (c) =>
   c.json(await getVersionedJsonFile<JsonObject>(c, "steam_info")),
 );
-api_v1.get("/icons", versionMiddleware, async (c) =>
+api_v1.get("/icons", versionMiddleware, cacheMiddleware, async (c) =>
   c.json(await getVersionedJsonFile<JsonObject>(c, "icons_data")),
 );
-api_v1.get("/sounds", versionMiddleware, async (c) =>
+api_v1.get("/sounds", versionMiddleware, cacheMiddleware, async (c) =>
   c.json(await getVersionedJsonFile<JsonObject>(c, "sounds_data")),
 );
 appBase.route("/v1", api_v1);
@@ -65,7 +65,7 @@ appBase.route("/v1", api_v1);
 const api_v2 = new Hono<{ Bindings: Bindings }>({ strict: true });
 api_v2.route("/heroes", heroes);
 api_v2.route("/items", items);
-api_v2.get("/ranks", versionMiddleware, languageMiddleware, async (c) =>
+api_v2.get("/ranks", versionMiddleware, languageMiddleware, cacheMiddleware, async (c) =>
   c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "ranks")),
 );
 api_v2.get("/client-versions", cacheMiddleware, async (c) =>
