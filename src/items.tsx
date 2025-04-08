@@ -96,4 +96,29 @@ items.get(
   },
 );
 
+// This is just for backwards compatibility, and should be removed in the future
+items.get(
+  "/by-type/:item_slot_type",
+  arktypeValidator("param", type({ item_slot_type: type("string") })),
+  versionMiddleware,
+  languageMiddleware,
+  async (c) => {
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
+
+    const { item_slot_type } = c.req.valid("param");
+
+    const item_slot_types = ["weapon", "ability", "upgrade", "tech", "armor"];
+
+    if (!item_slot_types.includes(item_slot_type)) {
+      throw new NotFound(
+        `item type not found (type: ${item_slot_type}) - must be one of ${item_slot_types.join(", ")})`,
+      );
+    }
+
+    const items = json.filter((item: JsonObject) => item.type === item_slot_type);
+
+    return c.json(items);
+  },
+);
+
 export default items;
