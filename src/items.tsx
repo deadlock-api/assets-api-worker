@@ -5,7 +5,6 @@ import {
   type Bindings,
   type JsonObject,
   NotFound,
-  cacheMiddleware,
   getVersionedLanguageJsonFile,
   languageMiddleware,
   versionMiddleware,
@@ -25,7 +24,7 @@ items.get(
   arktypeValidator("param", type({ id_or_classname: type("string") })),
   versionMiddleware,
   languageMiddleware,
-  cacheMiddleware,
+
   async (c) => {
     const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
 
@@ -48,7 +47,7 @@ items.get(
   arktypeValidator("param", type({ hero_id: type("string.integer.parse") })),
   versionMiddleware,
   languageMiddleware,
-  cacheMiddleware,
+
   async (c) => {
     const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
 
@@ -80,7 +79,7 @@ items.get(
   arktypeValidator("param", type({ item_type: type("string") })),
   versionMiddleware,
   languageMiddleware,
-  cacheMiddleware,
+
   async (c) => {
     const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
 
@@ -105,7 +104,7 @@ items.get(
   arktypeValidator("param", type({ item_slot_type: type("string") })),
   versionMiddleware,
   languageMiddleware,
-  cacheMiddleware,
+
   async (c) => {
     const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
 
