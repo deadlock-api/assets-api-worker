@@ -32,6 +32,12 @@ api_raw.get("/items", versionMiddleware, async (c) => {
     "Content-Type": "application/json",
   });
 });
+api_raw.get("/generic_data", versionMiddleware, async (c) => {
+  const data = await getVersionedJsonFile<string>(c, "generic_data", true);
+  return c.body(data, 200, {
+    "Content-Type": "application/json",
+  });
+});
 appBase.route("/raw", api_raw);
 
 const api_v1 = new Hono<{ Bindings: Bindings }>({ strict: true });
@@ -44,7 +50,6 @@ api_v1.get("/map", versionMiddleware, async (c) =>
 api_v1.get("/steam-info", versionMiddleware, async (c) =>
   c.json(await getVersionedJsonFile<JsonObject[]>(c, "steam_info")),
 );
-
 api_v1.get("/icons", versionMiddleware, async (c) =>
   c.json(await getVersionedJsonFile<JsonObject[]>(c, "icons_data")),
 );
