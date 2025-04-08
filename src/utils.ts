@@ -9,9 +9,18 @@ export type Bindings = {
 
 export type BaseEnv = { Bindings: Bindings };
 
-export class JsonNotFound extends HTTPException {
+export class NotFound extends HTTPException {
   constructor(userMessage: string) {
     super(404, {
+      message: userMessage,
+      res: Response.json({ message: userMessage }),
+    });
+  }
+}
+
+export class InternalError extends HTTPException {
+  constructor(userMessage: string) {
+    super(500, {
       message: userMessage,
       res: Response.json({ message: userMessage }),
     });
@@ -43,7 +52,7 @@ export const versionMiddleware = createMiddleware<
   } else {
     const obj = await c.env.ASSETS_BUCKET.get("assets-api-data/versions/latest_version.txt");
     const objTxt = await obj?.text();
-    if (!objTxt) throw new JsonNotFound("assets-api-data/versions/latest_version.txt not found");
+    if (!objTxt) throw new NotFound("assets-api-data/versions/latest_version.txt not found");
     c.set("version", objTxt.trim());
   }
   await next();
@@ -76,10 +85,21 @@ export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
   path: string,
 ): Promise<T> => {
   const version = c.get("version");
-  const obj = await c.env.ASSETS_BUCKET.get(`assets-api-data/versions/${version}/${path}.json`);
-  if (!obj) throw new JsonNotFound(`requested object not found (ver ${version}/${path})`);
+  const key = `assets-api-data/versions/${version}/${path}.json`;
+
+  // Check if the object is cached in KV
+  const cached = await c.env.ASSETS_KV.get(key);
+  if (cached) return JSON.parse(cached) as T;
+
+  // Fetch the object from the R2 bucket
+  const obj = await c.env.ASSETS_BUCKET.get(key);
+  if (!obj) throw new NotFound(`requested object not found (${key})`);
   const json = await obj.json();
-  if (!json) throw new JsonNotFound(`requested object corrupted (ver ${version}/${path})`);
+  if (!json) throw new InternalError(`requested object corrupted (${key})`);
+
+  // Cache the object in KV
+  await c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+
   return json as T;
 };
 
@@ -92,13 +112,20 @@ export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonVal
 ): Promise<T> => {
   const version = c.get("version");
   const language = c.get("language");
-  const obj = await c.env.ASSETS_BUCKET.get(
-    `assets-api-data/versions/${version}/${path}/${language}.json`,
-  );
-  if (!obj)
-    throw new JsonNotFound(`requested object not found (ver ${version}/${path}/${language}.json)`);
+  const key = `assets-api-data/versions/${version}/${path}/${language}.json`;
+
+  // Check if the object is cached in KV
+  const cached = await c.env.ASSETS_KV.get(key);
+  if (cached) return JSON.parse(cached) as T;
+
+  // Fetch the object from the R2 bucket
+  const obj = await c.env.ASSETS_BUCKET.get(key);
+  if (!obj) throw new NotFound(`requested object not found (${key})`);
   const json = await obj.json();
-  if (!json)
-    throw new JsonNotFound(`requested object corrupted (ver ${version}/${path}/${language}.json)`);
+  if (!json) throw new InternalError(`requested object corrupted (${key})`);
+
+  // Cache the object in KV
+  await c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+
   return json as T;
 };

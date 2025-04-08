@@ -14,5 +14,12 @@
       "bucket_name": "assets",
       "preview_bucket_name": "preview-assets"
     }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "ASSETS_KV",
+      "id": "0b41f55ea71e48d881b2f8db766f37d7",
+      "preview_id": "ac3bcfd65e2743c79a56c15c7f63fa41"
+    }
   ]
 }

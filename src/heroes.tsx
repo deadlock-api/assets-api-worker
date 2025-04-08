@@ -3,8 +3,8 @@ import { type } from "arktype";
 import { Hono } from "hono";
 import {
   type Bindings,
-  JsonNotFound,
   type JsonObject,
+  NotFound,
   getVersionedLanguageJsonFile,
   languageMiddleware,
   versionMiddleware,
@@ -27,7 +27,7 @@ heroes.get(
     const { id } = c.req.valid("param");
 
     const hero = json.find((hero: JsonObject) => hero?.id === id);
-    if (!hero) throw new JsonNotFound(`hero not found (id: ${id})`);
+    if (!hero) throw new NotFound(`hero not found (id: ${id})`);
 
     return c.json(hero);
   },

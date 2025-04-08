@@ -3,8 +3,8 @@ import { type } from "arktype";
 import { Hono } from "hono";
 import {
   type Bindings,
-  JsonNotFound,
   type JsonObject,
+  NotFound,
   getVersionedLanguageJsonFile,
   languageMiddleware,
   versionMiddleware,
@@ -32,7 +32,7 @@ items.get(
     const item = json.find((item: JsonObject) =>
       isId ? item?.id === id : item?.class_name === id_or_classname,
     );
-    if (!item) throw new JsonNotFound(`item not found (id_or_classname: ${id_or_classname})`);
+    if (!item) throw new NotFound(`item not found (id_or_classname: ${id_or_classname})`);
 
     return c.json(item);
   },
@@ -82,7 +82,7 @@ items.get(
     const item_slot_types = ["weapon", "ability", "upgrade", "tech", "armor"];
 
     if (!item_slot_types.includes(item_slot_type)) {
-      throw new JsonNotFound(
+      throw new NotFound(
         `item type not found (type: ${item_slot_type}) - must be one of ${item_slot_types.join(", ")})`,
       );
     }
