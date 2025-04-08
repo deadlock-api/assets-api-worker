@@ -73,6 +73,30 @@ items.get(
 );
 
 items.get(
+  "/by-type/:item_type",
+  arktypeValidator("param", type({ item_type: type("string") })),
+  versionMiddleware,
+  languageMiddleware,
+  async (c) => {
+    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
+
+    const { item_type } = c.req.valid("param");
+
+    const item_types = ["weapon", "ability", "upgrade"];
+
+    if (!item_types.includes(item_type)) {
+      throw new NotFound(
+        `item type not found (type: ${item_type}) - must be one of ${item_types.join(", ")})`,
+      );
+    }
+
+    const items = json.filter((item: JsonObject) => item.type === item_type);
+
+    return c.json(items);
+  },
+);
+
+items.get(
   "/by-slot-type/:item_slot_type",
   arktypeValidator("param", type({ item_slot_type: type("string") })),
   versionMiddleware,
@@ -82,7 +106,7 @@ items.get(
 
     const { item_slot_type } = c.req.valid("param");
 
-    const item_slot_types = ["weapon", "ability", "upgrade", "tech", "armor"];
+    const item_slot_types = ["weapon", "spirit", "vitality"];
 
     if (!item_slot_types.includes(item_slot_type)) {
       throw new NotFound(
@@ -90,32 +114,9 @@ items.get(
       );
     }
 
-    const items = json.filter((item: JsonObject) => item.type === item_slot_type);
-
-    return c.json(items);
-  },
-);
-
-// This is just for backwards compatibility, and should be removed in the future
-items.get(
-  "/by-type/:item_slot_type",
-  arktypeValidator("param", type({ item_slot_type: type("string") })),
-  versionMiddleware,
-  languageMiddleware,
-  async (c) => {
-    const json = (await getVersionedLanguageJsonFile<JsonObject[]>(c, "items")) as JsonObject[];
-
-    const { item_slot_type } = c.req.valid("param");
-
-    const item_slot_types = ["weapon", "ability", "upgrade", "tech", "armor"];
-
-    if (!item_slot_types.includes(item_slot_type)) {
-      throw new NotFound(
-        `item type not found (type: ${item_slot_type}) - must be one of ${item_slot_types.join(", ")})`,
-      );
-    }
-
-    const items = json.filter((item: JsonObject) => item.type === item_slot_type);
+    const items = json.filter(
+      (item: JsonObject) => item.type === "upgrade" && item.item_slot_type === item_slot_type,
+    );
 
     return c.json(items);
   },
