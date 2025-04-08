@@ -3,14 +3,11 @@
   "name": "assets-worker",
   "compatibility_date": "2024-04-01",
   "main": "./src/index.tsx",
-  "assets": {
-    "directory": "./dist"
-  },
   "r2_buckets": [
     {
       "binding": "ASSETS_BUCKET",
-      "bucket_name": "assets"
+      "bucket_name": "assets",
+      "preview_bucket_name": "preview-assets"
     }
   ]
 }
-
