@@ -101,13 +101,15 @@ export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
 
   if (return_unparsed) {
     const text = await obj.text();
-    await c.env.ASSETS_KV.put(key, text, { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+    c.executionCtx.waitUntil(c.env.ASSETS_KV.put(key, text, { expirationTtl: 60 * 60 * 24 * 7 })); // Cache for 7 days
     return text;
   }
 
   const json = await obj.json();
   if (!json) throw new InternalError(`requested object corrupted (${key})`);
-  await c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+  c.executionCtx.waitUntil(
+    c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }),
+  ); // Cache for 7 days
   return json as T;
 };
 
@@ -136,12 +138,14 @@ export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonVal
 
   if (return_unparsed) {
     const text = await obj.text();
-    await c.env.ASSETS_KV.put(key, text, { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+    c.executionCtx.waitUntil(c.env.ASSETS_KV.put(key, text, { expirationTtl: 60 * 60 * 24 * 7 })); // Cache for 7 days
     return text;
   }
 
   const json = await obj.json();
   if (!json) throw new InternalError(`requested object corrupted (${key})`);
-  await c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }); // Cache for 7 days
+  c.executionCtx.waitUntil(
+    c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: 60 * 60 * 24 * 7 }),
+  ); // Cache for 7 days
   return json as T;
 };
