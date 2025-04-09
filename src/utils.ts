@@ -116,7 +116,6 @@ export const cacheMiddleware = createMiddleware<
 
 /**
  * Middleware which rate limits the request
- * Rate limit is set to 10 requests per minute
  */
 export const rateLimitMiddleware = createMiddleware<
   BaseEnv & { Variables: { version?: string; language?: string } }
