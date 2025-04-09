@@ -39,7 +39,7 @@ export interface JsonObject {
 const DEFAULT_TTL = 60;
 
 /**
- * Middleware which fetches `assets-api-data/versions/latest_version.txt` and sets the version in the context
+ * Middleware which fetches `assets-api-data/latest_version.txt` and sets the version in the context
  * Overrideable by query param `client_version`
  */
 export const versionMiddleware = createMiddleware<
@@ -54,7 +54,7 @@ export const versionMiddleware = createMiddleware<
   if (versionQ && Number.isInteger(Number.parseInt(versionQ))) {
     version = versionQ;
   } else {
-    const key = "assets-api-data/versions/latest_version.txt";
+    const key = "assets-api-data/latest_version.txt";
 
     version = (await getCachedFileKV(c, key)).trim();
   }

@@ -83,7 +83,7 @@ api_v2.get("/ranks", versionMiddleware, languageMiddleware, async (c) =>
   c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "ranks")),
 );
 api_v2.get("/client-versions", async (c) =>
-  c.json(await getFile(c, "assets-api-data/versions/client_versions.json")),
+  c.json(await getFile(c, "assets-api-data/client_versions.json")),
 );
 appBase.route("/v2", api_v2);
 
