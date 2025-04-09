@@ -176,7 +176,7 @@ export const getCachedJsonFileKV = async <T extends JsonValue = JsonValue>(
 ): Promise<T> => {
   const cached = await c.env.ASSETS_KV.get(key);
   if (cached) {
-    console.info(`cache hit for ${key}`);
+    console.info(`KV cache hit for ${key}`);
     return JSON.parse(cached) as T;
   }
   const json = await getJsonFile(c, key);
@@ -207,7 +207,7 @@ export const getJsonFile = async <T extends JsonValue = JsonValue>(
 export const getCachedFileKV = async (c: Context, key: string): Promise<string> => {
   const cached = await c.env.ASSETS_KV.get(key);
   if (cached) {
-    console.info(`cache hit for ${key}`);
+    console.info(`KV cache hit for ${key}`);
     return cached;
   }
   const text = await getFile(c, key);
