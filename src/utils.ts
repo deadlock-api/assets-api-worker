@@ -1,10 +1,12 @@
 import type { Context } from "hono";
+import { getConnInfo } from "hono/cloudflare-workers";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 
 export type Bindings = {
   ASSETS_BUCKET: R2Bucket;
   ASSETS_KV: KVNamespace;
+  RATE_LIMITER: RateLimit;
 };
 
 export type BaseEnv = { Bindings: Bindings };
@@ -82,6 +84,60 @@ export const languageMiddleware = createMiddleware<
 });
 
 /**
+ * Middleware which caches the response for 7 days
+ * Cache key is the request URL + version + language
+ */
+export const cacheMiddleware = createMiddleware<
+  BaseEnv & { Variables: { version?: string; language?: string } }
+>(async (c, next) => {
+  let key = c.req.url;
+
+  const version = c.get("version");
+  const language = c.get("language");
+  if (version) {
+    key += `--${version}`;
+  }
+  if (language) {
+    key += `--${language}`;
+  }
+
+  const cached = await caches.default.match(key);
+  if (cached) {
+    console.log(`cache hit for ${key}`);
+    return cached;
+  }
+  await next();
+
+  c.res.headers.set("Cache-Control", `public, max-age=${DEFAULT_TTL}`);
+
+  const res = c.res.clone();
+  c.executionCtx.waitUntil(caches.default.put(key, res));
+});
+
+/**
+ * Middleware which rate limits the request
+ * Rate limit is set to 10 requests per minute
+ */
+export const rateLimitMiddleware = createMiddleware<
+  BaseEnv & { Variables: { version?: string; language?: string } }
+>(async (c, next) => {
+  const info = getConnInfo(c);
+  const ip = info.remote.address;
+  const { success } = await c.env.RATE_LIMITER.limit({
+    key: `rate-limit:${ip}`,
+  });
+  if (!success) {
+    return c.json(
+      {
+        message: "Too many requests",
+      },
+      429,
+    );
+  }
+  await next();
+});
+
+/**
  * Fetches a versioned JSON file from the bucket
  */
 export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
@@ -111,33 +167,6 @@ export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonVal
   if (return_unparsed) return getCachedFileKV(c, key);
   return getCachedJsonFileKV(c, key);
 };
-
-export const cacheMiddleware = createMiddleware<
-  BaseEnv & { Variables: { version?: string; language?: string } }
->(async (c, next) => {
-  let key = c.req.url;
-
-  const version = c.get("version");
-  const language = c.get("language");
-  if (version) {
-    key += `--${version}`;
-  }
-  if (language) {
-    key += `--${language}`;
-  }
-
-  // const cached = await caches.default.match(key);
-  // if (cached) {
-  //   console.log(`cache hit for ${key}`);
-  //   return cached;
-  // }
-  await next();
-
-  c.res.headers.set("Cache-Control", `public, max-age=${DEFAULT_TTL}`);
-
-  const res = c.res.clone();
-  c.executionCtx.waitUntil(caches.default.put(key, res));
-});
 
 /**
  * Helper function to fetch and cache a JSON file from the bucket

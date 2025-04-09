@@ -11,12 +11,14 @@ import {
   getVersionedJsonFile,
   getVersionedLanguageJsonFile,
   languageMiddleware,
+  rateLimitMiddleware,
   versionMiddleware,
 } from "./utils";
 
 const appBase = new Hono<{ Bindings: Bindings }>({ strict: true });
 
 appBase.use(trimTrailingSlash());
+appBase.use(rateLimitMiddleware);
 appBase.use(cacheMiddleware);
 appBase.use(
   cors({
