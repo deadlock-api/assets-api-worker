@@ -35,8 +35,7 @@ export interface JsonObject {
   [k: string | number | symbol]: JsonValue;
 }
 
-// For testing
-const DEFAULT_TTL = 60;
+const DEFAULT_TTL = 60 * 60 * 24 * 7;
 
 /**
  * Middleware which fetches `assets-api-data/latest_version.txt` and sets the version in the context
