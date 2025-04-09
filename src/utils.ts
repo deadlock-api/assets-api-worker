@@ -173,10 +173,10 @@ export const getFile = async (c: Context, key: string): Promise<string> => {
 export const getCachedFileKV = async (c: Context, key: string): Promise<string> => {
   const cached = await c.env.ASSETS_KV.get(key);
   if (cached) {
-    console.log(`cache hit for ${key}`);
+    console.info(`cache hit for ${key}`);
     return cached;
   }
   const text = await getFile(c, key);
-  await c.env.ASSETS_KV.put(key, text, { expirationTtl: DEFAULT_TTL });
+  c.executionCtx.waitUntil(c.env.ASSETS_KV.put(key, text, { expirationTtl: DEFAULT_TTL }));
   return text;
 };
