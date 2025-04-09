@@ -19,7 +19,22 @@ appBase.use(trimTrailingSlash());
 appBase.use(cacheMiddleware);
 
 appBase.get("/", versionMiddleware, async (c) =>
-  c.render(<h1>TODO: Host OpenAPI Documentation</h1>),
+  c.render(
+    <html lang="en">
+      <head>
+        <title>Deadlock API - Assets</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body>
+        <script
+          id="api-reference"
+          data-url="https://assets-bucket.deadlock-api.com/assets-api-data/openapi.json"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference" />
+      </body>
+    </html>,
+  ),
 );
 
 const api_raw = new Hono<{ Bindings: Bindings }>({ strict: true });
