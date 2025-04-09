@@ -7,7 +7,7 @@ import {
   type Bindings,
   type JsonObject,
   cacheMiddleware,
-  getFile,
+  getCachedFileKV,
   getVersionedJsonFile,
   getVersionedLanguageJsonFile,
   languageMiddleware,
@@ -89,9 +89,11 @@ api_v2.route("/items", items);
 api_v2.get("/ranks", versionMiddleware, languageMiddleware, async (c) =>
   c.json(await getVersionedLanguageJsonFile<JsonObject[]>(c, "ranks")),
 );
-api_v2.get("/client-versions", async (c) =>
-  c.json(await getFile(c, "assets-api-data/client_versions.json")),
-);
+api_v2.get("/client-versions", async (c) => {
+  c.header("Content-Type", "application/json");
+  const data = await getCachedFileKV(c, "assets-api-data/client_versions.json");
+  return c.body(data);
+});
 appBase.route("/v2", api_v2);
 
 export default appBase;

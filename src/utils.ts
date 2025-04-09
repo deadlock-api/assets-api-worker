@@ -92,8 +92,8 @@ export const getVersionedJsonFile = async <T extends JsonValue = JsonValue>(
   const version = c.get("version");
   const key = `assets-api-data/versions/${version}/${path}.json`;
 
-  if (return_unparsed) return getFile(c, key);
-  return getJsonFile(c, key);
+  if (return_unparsed) return getCachedFileKV(c, key);
+  return getCachedJsonFileKV(c, key);
 };
 
 /**
@@ -108,8 +108,8 @@ export const getVersionedLanguageJsonFile = async <T extends JsonValue = JsonVal
   const language = c.get("language");
   const key = `assets-api-data/versions/${version}/${path}/${language}.json`;
 
-  if (return_unparsed) return getFile(c, key);
-  return getJsonFile(c, key);
+  if (return_unparsed) return getCachedFileKV(c, key);
+  return getCachedJsonFileKV(c, key);
 };
 
 export const cacheMiddleware = createMiddleware<
@@ -126,11 +126,11 @@ export const cacheMiddleware = createMiddleware<
     key += `--${language}`;
   }
 
-  const cached = await caches.default.match(key);
-  if (cached) {
-    console.log(`cache hit for ${key}`);
-    return cached;
-  }
+  // const cached = await caches.default.match(key);
+  // if (cached) {
+  //   console.log(`cache hit for ${key}`);
+  //   return cached;
+  // }
   await next();
 
   c.res.headers.set("Cache-Control", `public, max-age=${DEFAULT_TTL}`);
@@ -142,11 +142,29 @@ export const cacheMiddleware = createMiddleware<
 /**
  * Helper function to fetch and cache a JSON file from the bucket
  */
+export const getCachedJsonFileKV = async <T extends JsonValue = JsonValue>(
+  c: Context,
+  key: string,
+): Promise<T> => {
+  const cached = await c.env.ASSETS_KV.get(key);
+  if (cached) {
+    console.info(`cache hit for ${key}`);
+    return JSON.parse(cached) as T;
+  }
+  const json = await getJsonFile(c, key);
+  c.executionCtx.waitUntil(
+    c.env.ASSETS_KV.put(key, JSON.stringify(json), { expirationTtl: DEFAULT_TTL }),
+  );
+  return json as T;
+};
+
+/**
+ * Helper function to fetch and cache a JSON file from the bucket
+ */
 export const getJsonFile = async <T extends JsonValue = JsonValue>(
   c: Context,
   key: string,
 ): Promise<T> => {
-  // Fetch the object from the R2 bucket
   const obj = await c.env.ASSETS_BUCKET.get(key);
   if (!obj) throw new NotFound(`requested object not found (${key})`);
 
@@ -156,20 +174,8 @@ export const getJsonFile = async <T extends JsonValue = JsonValue>(
 };
 
 /**
- * Helper function to fetch and cache a JSON file from the bucket
+ * Helper function to fetch and cache a file from the bucket
  */
-export const getFile = async (c: Context, key: string): Promise<string> => {
-  // Fetch the object from the R2 bucket
-
-  // Fetch the object from the R2 bucket
-  const obj = await c.env.ASSETS_BUCKET.get(key);
-  if (!obj) throw new NotFound(`requested object not found (${key})`);
-
-  const text = await obj.text();
-  if (!text) throw new InternalError(`requested object corrupted (${key})`);
-  return text;
-};
-
 export const getCachedFileKV = async (c: Context, key: string): Promise<string> => {
   const cached = await c.env.ASSETS_KV.get(key);
   if (cached) {
@@ -178,5 +184,17 @@ export const getCachedFileKV = async (c: Context, key: string): Promise<string> 
   }
   const text = await getFile(c, key);
   c.executionCtx.waitUntil(c.env.ASSETS_KV.put(key, text, { expirationTtl: DEFAULT_TTL }));
+  return text;
+};
+
+/**
+ * Helper function to fetch a file from the bucket
+ */
+export const getFile = async (c: Context, key: string): Promise<string> => {
+  const obj = await c.env.ASSETS_BUCKET.get(key);
+  if (!obj) throw new NotFound(`requested object not found (${key})`);
+
+  const text = await obj.text();
+  if (!text) throw new InternalError(`requested object corrupted (${key})`);
   return text;
 };
