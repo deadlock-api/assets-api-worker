@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import heroes from "./heroes";
 import items from "./items";
@@ -17,6 +18,12 @@ const appBase = new Hono<{ Bindings: Bindings }>({ strict: true });
 
 appBase.use(trimTrailingSlash());
 appBase.use(cacheMiddleware);
+appBase.use(
+  cors({
+    origin: "*",
+    allowMethods: ["GET", "HEAD"],
+  }),
+);
 
 appBase.get("/", versionMiddleware, async (c) =>
   c.render(
