@@ -4,6 +4,10 @@
   "compatibility_date": "2024-04-01",
   "main": "src/index.tsx",
   "minify": true,
+  "route": {
+    "custom_domain": true,
+    "pattern": "assets.deadlock-api.com"
+  },
   "placement": {
     "mode": "smart"
   },
