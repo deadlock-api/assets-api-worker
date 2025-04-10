@@ -8,6 +8,9 @@
     "custom_domain": true,
     "pattern": "assets.deadlock-api.com"
   },
+  "limits": {
+    "cpu_ms": 500
+  },
   "placement": {
     "mode": "smart"
   },
